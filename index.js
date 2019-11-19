@@ -8,50 +8,20 @@ const writeFileAsync = util.promisify(fs.writeFile);
 function promptUser() {
     return inquirer.prompt([
         {
-            type: "input",
-            name: "name",
-            message: "What is your name?"
-        },
-        {
-            type: "input",
-            name: "location",
-            message: "Where are you from?"
-        },
-        {
-            type: "input",
-            name: "hobby",
-            message: "What is your favorite hobby?"
-        },
-        {
-            type: "input",
-            name: "food",
-            message: "What is your favorite food?"
-        },
-        {
-            type: "input",
-            name: "github",
-            message: "Enter your GitHub Username"
-        },
-        {
-            type: "input",
-            name: "linkedin",
-            message: "Enter your LinkedIn URL."
-        }
-    ]);
-}
-
-function promptUser2() {
-    return inquirer.prompt([
-        {
-            type: "input",
+            message: "Enter your GitHub Username",
             name: "githubName",
-            message: "Enter your GitHub Username"
+            type: "input"
         },
-
         {
             message: "Choose a color (green, blue, pink, or red):",
             name: "favColor",
-            type: "input"
+            type: "list",
+            choices: [
+                "blue",
+                "red",
+                "green",
+                "pink"
+            ]
         }
     ])
         .then(function ({ githubName, favColor }) {
@@ -62,59 +32,69 @@ function promptUser2() {
             axios.get(queryUrl).then(function (response) {
 
                 console.log(response);
+                console.log(response.data.avatar_url);
+                console.log(response.data.html_url);
+                console.log(response.data.bio);
+                console.log(response.data.public_repos);
+                console.log(response.data.followers);
+                console.log(response.data.following);
+                console.log(response.data.location);
+                console.log(response.data.login);
 
-                const repoNames = res.data.map(function (repo) {
-                    return repo.name;
-                });
+                const name = response.data.login;
+                const avatar = response.data.avatar_url;
+                const githubLink = response.data.html_url;
+                const bio = response.data.bio;
+                const repositories = response.data.public_repos;
+                const followers = response.data.followers;
+                const following = response.data.following;
+                const location = response.data.location;
+                const blog = response.data.blog;
 
-                const repoNamesStr = repoNames.join("\n");
-
-                fs.writeFile("repos.txt", repoNamesStr, function (err) {
-                    if (err) {
-                        throw err;
-                    }
-                    console.log(`Saved ${repoNames.length} repos`);
-                });
-            });
-        });
-    ;
-}
-
-function generateHTML(answers) {
-    return `
+                function generateHTML(githubName) {
+                    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-  <title>Document</title>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<title>Document</title>
 </head>
 <body>
-  <div class="jumbotron jumbotron-fluid">
-  <div class="container">
-    <h1 class="display-4">Hi! My name is ${answers.name}</h1>
-    <p class="lead">I am from ${answers.location}.</p>
-    <h3>Example heading <span class="badge badge-secondary">Contact Me</span></h3>
+<div class="jumbotron jumbotron-fluid">
+<div style="background-color:${favColor}" class="container">
+<img src="${avatar}" class="rounded mx-auto d-block" alt="...">
+    <h1 class="display-4">Hi! My name is ${name}!</h1>
+    <p class="lead">I am from ${location}.</p>
+    <hr>
+    <h3> <a href="${githubLink}" class="badge badge-primary">Github</a> </h6>
+    <h3> <a href="${blog}" class="badge badge-primary">Blog</a> </h6>
+    <hr>
     <ul class="list-group">
-      <li class="list-group-item">My GitHub username is ${answers.github}</li>
-      <li class="list-group-item">LinkedIn: ${answers.linkedin}</li>
+     <li class="list-group-item">Bio: ${bio}</li>
+     <li class="list-group-item">Repositories: ${repositories}</li> 
+     <li class="list-group-item">Followers: ${followers}</li>
+     <li class="list-group-item">Following: ${following}</li>
     </ul>
-  </div>
+    </div>
 </div>
 </body>
 </html>`;
-}
+                }
+                const html = generateHTML(githubName);
+                writeFileAsync("index.html", html);
+            }
+            )
+        }
+        )
+};
+
 
 async function init() {
     console.log("hi")
     try {
-        const answers = await promptUser();
-        const answer2 = await promptUser2();
-
-        const html = generateHTML(answers);
-
-        await writeFileAsync("index.html", html);
+        const githubName = await promptUser();
 
         console.log("Successfully wrote to index.html");
     } catch (err) {
@@ -122,33 +102,34 @@ async function init() {
     }
 }
 
+init();
 
-const colors = {
-    green: {
-        wrapperBackground: "#E6E1C3",
-        headerBackground: "#C1C72C",
-        headerColor: "black",
-        photoBorderColor: "#black"
-    },
-    blue: {
-        wrapperBackground: "#5F64D3",
-        headerBackground: "#26175A",
-        headerColor: "white",
-        photoBorderColor: "#73448C"
-    },
-    pink: {
-        wrapperBackground: "#879CDF",
-        headerBackground: "#FF8374",
-        headerColor: "white",
-        photoBorderColor: "#FEE24C"
-    },
-    red: {
-        wrapperBackground: "#DE9967",
-        headerBackground: "#870603",
-        headerColor: "white",
-        photoBorderColor: "white"
-    }
-};
+// const colors = {
+//     green: {
+//         wrapperBackground: "#E6E1C3",
+//         headerBackground: "#C1C72C",
+//         headerColor: "black",
+//         photoBorderColor: "#black"
+//     },
+//     blue: {
+//         wrapperBackground: "#5F64D3",
+//         headerBackground: "#26175A",
+//         headerColor: "white",
+//         photoBorderColor: "#73448C"
+//     },
+//     pink: {
+//         wrapperBackground: "#879CDF",
+//         headerBackground: "#FF8374",
+//         headerColor: "white",
+//         photoBorderColor: "#FEE24C"
+//     },
+//     red: {
+//         wrapperBackground: "#DE9967",
+//         headerBackground: "#870603",
+//         headerColor: "white",
+//         photoBorderColor: "white"
+//     }
+// };
 
 // function generateHTML(answers) {
 //     return `
@@ -263,7 +244,7 @@ const colors = {
 //                padding-left: 100px;
 //                padding-right: 100px;
 //                }
-      
+
 //                .row {
 //                  display: flex;
 //                  flex-wrap: wrap;
@@ -271,7 +252,7 @@ const colors = {
 //                  margin-top: 20px;
 //                  margin-bottom: 20px;
 //                }
-      
+
 //                .card {
 //                  padding: 20px;
 //                  border-radius: 6px;
@@ -279,18 +260,18 @@ const colors = {
 //                  color: ${colors[answers.color].headerColor};
 //                  margin: 20px;
 //                }
-               
+
 //                .col {
 //                flex: 1;
 //                text-align: center;
 //                }
-      
+
 //                a, a:hover {
 //                text-decoration: none;
 //                color: inherit;
 //                font-weight: bold;
 //                }
-      
+
 //                @media print { 
 //                 body { 
 //                   zoom: .75; 
@@ -298,49 +279,6 @@ const colors = {
 //                }
 //             </style>`
 // }
-
-function generateHTML(answers) {
-    return `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-        <title>Document</title>
-      </head>
-      <body>
-        <div class="jumbotron jumbotron-fluid">
-        <div class="container">
-          <h1 class="display-4">Hi! My name is ${answers.name}</h1>
-          <p class="lead">I am from ${answers.location}.</p>
-          <h3>Example heading <span class="badge badge-secondary">Contact Me</span></h3>
-          <ul class="list-group">
-            <li class="list-group-item">My GitHub username is ${answers.github}</li>
-            <li class="list-group-item">LinkedIn: ${answers.linkedin}</li>
-          </ul>
-        </div>
-      </div>
-      </body>
-      </html>`;
-}
-
-async function init() {
-    console.log("hi")
-    try {
-        const answers = await promptUser();
-
-        const html = generateHTML(answers);
-
-        await writeFileAsync("index.html", html);
-
-        console.log("Successfully wrote to index.html");
-    } catch (err) {
-        console.log(err);
-    }
-}
-
-init();
 
 
 
